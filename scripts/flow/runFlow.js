@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -52,7 +52,7 @@ async function runFlow(renderer, args) {
         fs.unlinkSync(destPath);
         fs.copyFileSync(srcPath, destPath);
         // Set the mtime of the copied file to be same as the original file,
-        // so that the ahove check works.
+        // so that the above check works.
         fs.utimesSync(destPath, srcStat.atime, srcStat.mtime);
       }
     } else {
@@ -67,7 +67,7 @@ async function runFlow(renderer, args) {
     spawn(cmd, args, {
       // Allow colors to pass through:
       stdio: 'inherit',
-    }).on('close', function(code) {
+    }).on('close', function (code) {
       if (code !== 0) {
         console.error(
           'Flow failed for the ' + chalk.red(renderer) + ' renderer',

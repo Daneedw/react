@@ -5,7 +5,7 @@ const {createPatch} = require('diff');
 const {hashElement} = require('folder-hash');
 const {existsSync, readFileSync, writeFileSync} = require('fs');
 const {readJson, writeJson} = require('fs-extra');
-const http = require('request-promise-json');
+const fetch = require('node-fetch');
 const logUpdate = require('log-update');
 const {join} = require('path');
 const createLogger = require('progress-estimator');
@@ -59,9 +59,14 @@ const extractCommitFromVersionNumber = version => {
 };
 
 const getArtifactsList = async buildID => {
+  const headers = {};
+  const {CIRCLE_CI_API_TOKEN} = process.env;
+  if (CIRCLE_CI_API_TOKEN != null) {
+    headers['Circle-Token'] = CIRCLE_CI_API_TOKEN;
+  }
   const jobArtifactsURL = `https://circleci.com/api/v1.1/project/github/facebook/react/${buildID}/artifacts`;
-  const jobArtifacts = await http.get(jobArtifactsURL, true);
-  return jobArtifacts;
+  const jobArtifacts = await fetch(jobArtifactsURL, {headers});
+  return jobArtifacts.json();
 };
 
 const getBuildInfo = async () => {
@@ -72,7 +77,9 @@ const getBuildInfo = async () => {
   const branch = await execRead('git branch | grep \\* | cut -d " " -f2', {
     cwd,
   });
-  const commit = await execRead('git show -s --format=%h', {cwd});
+  const commit = await execRead('git show -s --no-show-signature --format=%h', {
+    cwd,
+  });
   const checksum = await getChecksumForCurrentRevision(cwd);
   const dateString = await getDateStringForCommit(commit);
   const version = isExperimental
@@ -106,12 +113,12 @@ const getChecksumForCurrentRevision = async cwd => {
 
 const getDateStringForCommit = async commit => {
   let dateString = await execRead(
-    `git show -s --format=%cd --date=format:%Y%m%d ${commit}`
+    `git show -s --no-show-signature --format=%cd --date=format:%Y%m%d ${commit}`
   );
 
   // On CI environment, this string is wrapped with quotes '...'s
   if (dateString.startsWith("'")) {
-    dateString = dateString.substr(1, 8);
+    dateString = dateString.slice(1, 9);
   }
 
   return dateString;

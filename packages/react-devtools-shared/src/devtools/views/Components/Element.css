@@ -22,11 +22,6 @@
   user-select: none;
 }
 
-.ScrollAnchor {
-  height: 100%;
-  width: 0;
-}
-
 .SelectedElement {
   background-color: var(--color-background-selected);
   color: var(--color-text-selected);
@@ -76,6 +71,8 @@
 
 .ErrorIcon,
 .ErrorIconContrast,
+.StrictMode,
+.StrictModeContrast,
 .WarningIcon,
 .WarningIconContrast {
   height: 0.75rem !important;
@@ -85,9 +82,15 @@
 .ErrorIcon {
   color: var(--color-console-error-icon);
 }
+.StrictMode {
+  color: var(--color-dimmer);
+}
 .WarningIcon {
   color: var(--color-console-warning-icon);
 }
 .ErrorIconContrast, .WarningIconContrast {
   color: var(--color-component-name);
+}
+.StrictModeContrast {
+  color: var(--color-text);
 }

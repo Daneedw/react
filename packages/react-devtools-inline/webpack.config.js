@@ -1,5 +1,5 @@
 const {resolve} = require('path');
-const {DefinePlugin} = require('webpack');
+const Webpack = require('webpack');
 const {
   DARK_MODE_DIMMED_WARNING_COLOR,
   DARK_MODE_DIMMED_ERROR_COLOR,
@@ -33,14 +33,6 @@ const babelOptions = {
   ),
 };
 
-const builtModulesDir = resolve(
-  __dirname,
-  '..',
-  '..',
-  'build',
-  'oss-experimental',
-);
-
 module.exports = {
   mode: __DEV__ ? 'development' : 'production',
   devtool: __DEV__ ? 'eval-cheap-source-map' : 'source-map',
@@ -51,21 +43,22 @@ module.exports = {
   },
   output: {
     path: __dirname + '/dist',
+    publicPath: '/dist/',
     filename: '[name].js',
     chunkFilename: '[name].chunk.js',
-    library: '[name]',
-    libraryTarget: 'commonjs2',
+    library: {
+      type: 'commonjs2',
+    },
   },
   externals: {
-    react: resolve(builtModulesDir, 'react'),
-    'react-dom': resolve(builtModulesDir, 'react-dom/unstable_testing'),
-    'react-is': resolve(builtModulesDir, 'react-is'),
-    scheduler: resolve(builtModulesDir, 'scheduler'),
+    react: 'react',
+    'react-dom': 'react-dom',
+    'react-dom/client': 'react-dom/client',
+    'react-is': 'react-is',
+    scheduler: 'scheduler',
   },
   node: {
-    // source-maps package has a dependency on 'fs'
-    // but this build won't trigger that code path
-    fs: 'empty',
+    global: false,
   },
   resolve: {
     alias: {
@@ -76,7 +69,11 @@ module.exports = {
     minimize: false,
   },
   plugins: [
-    new DefinePlugin({
+    new Webpack.ProvidePlugin({
+      process: 'process/browser',
+      Buffer: ['buffer', 'Buffer'],
+    }),
+    new Webpack.DefinePlugin({
       __DEV__,
       __EXPERIMENTAL__: true,
       __EXTENSION__: false,

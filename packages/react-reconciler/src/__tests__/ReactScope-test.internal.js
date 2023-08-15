@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -12,7 +12,7 @@
 let React;
 let ReactFeatureFlags;
 let ReactDOMServer;
-let Scheduler;
+let act;
 
 describe('ReactScope', () => {
   beforeEach(() => {
@@ -20,15 +20,19 @@ describe('ReactScope', () => {
     ReactFeatureFlags = require('shared/ReactFeatureFlags');
     ReactFeatureFlags.enableScopeAPI = true;
     React = require('react');
-    Scheduler = require('scheduler');
+
+    const InternalTestUtils = require('internal-test-utils');
+    act = InternalTestUtils.act;
   });
 
   describe('ReactDOM', () => {
     let ReactDOM;
+    let ReactDOMClient;
     let container;
 
     beforeEach(() => {
       ReactDOM = require('react-dom');
+      ReactDOMClient = require('react-dom/client');
       ReactDOMServer = require('react-dom/server');
       container = document.createElement('div');
       document.body.appendChild(container);
@@ -312,10 +316,7 @@ describe('ReactScope', () => {
       // On the client we don't have all data yet but we want to start
       // hydrating anyway.
       suspend = true;
-      const root = ReactDOM.createRoot(container2, {hydrate: true});
-      root.render(<App />);
-      Scheduler.unstable_flushAll();
-      jest.runAllTimers();
+      await act(() => ReactDOMClient.hydrateRoot(container2, <App />));
 
       // This should not cause a runtime exception, see:
       // https://github.com/facebook/react/pull/18184
@@ -324,10 +325,10 @@ describe('ReactScope', () => {
 
       // Resolving the promise should continue hydration
       suspend = false;
-      resolve();
-      await promise;
-      Scheduler.unstable_flushAll();
-      jest.runAllTimers();
+      await act(async () => {
+        resolve();
+        await promise;
+      });
 
       // We should now have hydrated with a ref on the existing span.
       expect(ref.current).toBe(span);
